@@ -19,23 +19,67 @@ function App() {
   const [charge, setCharge] = useState('');
   // single amount
   const [amount, setAmount] = useState('');
+  // alert
+  const [alert, setAlert] = useState({ show: false });
   // ************** functionality ****************
+
+  // handle charge
   const handleCharge = e => {
-    console.log(`charge : ${e.target.value}`);
     setCharge(e.target.value)
   };
 
+  // handle amount
   const handleAmount = e => {
-    console.log(`amount : ${e.target.value}`);
-    
-    setCharge(e.target.value)
+    setAmount(e.target.value)
   };
 
+  //handle alert
+  const handleAlert = ({ type, text }) => {
+    setAlert({ show: true, type, text });
+    setTimeout(()=>{
+      setAlert({ show: false })
+    },3000);
+  };
+
+  //handle submit
   const handleSubmit = e => {
     e.preventDefault();
+    if(charge !== '' && amount > 0){
+      const singleExpense = { id: uuid(), charge, amount };
+      setExpenses([...expenses, singleExpense]);
+      handleAlert({ type: 'success', text: 'item added' });
+      setCharge('');
+      setAmount('');
+    }
+    else{
+      // handle alert called
+      handleAlert({type: 'danger', text: `charge can't be empty value and amount of value has to be bigger than zero`})
+    }
   };
+
+  // clear all items
+  const clearItems = () => {
+    setExpenses([]);
+    handleAlert({type: 'danger', text: 'all items deleted'});
+  };
+
+  // handle delete
+  const handleDelete = id => {
+    let tempExpenses = expenses.filter(item => item.id !== id);
+    console.log(tempExpenses);
+    setExpenses(tempExpenses)
+    handleAlert({type: 'danger', text: 'item deleted'});
+    
+  };
+
+  // handle edit
+  const handleEdit = id => {
+    console.log(`item edited : ${id}`);
+  };
+
   return (
     <> 
+      {alert.show && <Alert type={alert.type} text={alert.text} />}
       <Alert />
       <h1>budget calculator</h1>
       <main className="App">
@@ -46,13 +90,19 @@ function App() {
           handleCharge={handleCharge}
           handleSubmit={handleSubmit}
         />
-        <List expenses={expenses} />  
+        <List 
+          expenses={expenses}
+          handleDelete = {handleDelete}
+          handleEdit = {handleEdit} 
+          clearItems = {clearItems} 
+        />  
       </main>
       <h1>
-        total spending : <span className="total">
+        total spending : {" "}
+        <span className="total">
           $ 
-          {expenses.reduce((acc,curr)=>{
-            return (acc += curr.amount);
+          {expenses.reduce((acc, curr) => {
+            return (acc += parseInt(curr.amount));
           },0)}
         </span>
       </h1>
